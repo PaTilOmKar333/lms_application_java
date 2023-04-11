@@ -14,6 +14,7 @@ services:
       - db:/var/lib/mysql
   app:
     build: .
+    image: 720955415171.dkr.ecr.ap-south-1.amazonaws.com/lmljavaapp:latest
     restart: on-failure
     env_file: ./.env
     ports:
