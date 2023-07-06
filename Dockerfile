@@ -21,10 +21,18 @@ COPY src src
 RUN mvn install -DskipTests
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
+# Add New Relic agent
+ARG NEWRELIC_AGENT_VERSION=8.1.0
+RUN wget -O newrelic.jar https://download.newrelic.com/newrelic/java-agent/newrelic-agent/${NEWRELIC_AGENT_VERSION}/newrelic-agent-${NEWRELIC_AGENT_VERSION}.jar
+
+
 FROM openjdk:8-jdk-alpine
 ARG DEPENDENCY=/workspace/app/target/dependency
 COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
-ENTRYPOINT ["java","-cp","app:app/lib/*","com.mehmetpekdemir.librarymanagementsystem.LibrarymanagementsystemApplication"]
+COPY --from=build /workspace/app/newrelic.jar /app/newrelic.jar
+
+#ENTRYPOINT ["java","-cp","app:app/lib/*","com.mehmetpekdemir.librarymanagementsystem.LibrarymanagementsystemApplication"]
+ENTRYPOINT ["java","-javaagent:/app/newrelic.jar","-cp","app:app/lib/*","com.mehmetpekdemir.librarymanagementsystem.LibrarymanagementsystemApplication"]
 EXPOSE 8081
